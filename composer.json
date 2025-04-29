@@ -1,7 +1,6 @@
 {
     "name": "service-to/uses-detail",
     "description": "A Laravel trait for handling dynamic model attributes using a JSON detail column",
-    "version": "1.0.0",
     "type": "library",
     "license": "MIT",
     "authors": [
