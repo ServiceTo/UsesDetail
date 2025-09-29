@@ -90,10 +90,13 @@ trait UsesDetail
         }
         
         foreach ((array)$obj as $key => $value) {
-            if ($this->shouldSkipAttribute($key)) {
+            // Clean property names that have null bytes from object-to-array casting
+            $cleanKey = $this->cleanPropertyName($key);
+
+            if ($this->shouldSkipAttribute($cleanKey)) {
                 continue;
             }
-            $this->{$key} = $value;
+            $this->{$cleanKey} = $value;
         }
         
         return true;
@@ -112,24 +115,32 @@ trait UsesDetail
             return false;
         }
     }
-    
+
+    private function cleanPropertyName(string $key): string
+    {
+        // Remove null bytes and class prefixes from property names
+        // Private properties: \0ClassName\0propertyName -> propertyName
+        // Protected properties: \0*\0propertyName -> propertyName
+        return preg_replace('/^\0.*?\0/', '', $key);
+    }
+
     private function shouldSkipAttribute(string $key): bool
     {
         // Skip primary key
         if ($key === $this->primaryKey) {
             return true;
         }
-        
+
         // Skip timestamps if enabled
         if ($this->timestamps && in_array($key, ['created_at', 'updated_at'])) {
             return true;
         }
-        
+
         // Skip casted attributes
         if (is_array($this->casts) && array_key_exists($key, $this->casts)) {
             return true;
         }
-        
+
         return false;
     }
 } 
