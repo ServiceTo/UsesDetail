@@ -42,10 +42,19 @@ class DetailQueryBuilder extends Builder
      *
      * @param  string  $column
      * @return string
+     * @throws \ServiceTo\MissingDetailColumnException
      */
     protected function resolveColumn($column)
     {
         if (!$this->columnExistsInSchema($column)) {
+            // Column doesn't exist in schema, need to use detail column
+            $columns = $this->getCachedSchemaColumns();
+            if (!in_array('detail', $columns)) {
+                throw MissingDetailColumnException::forModel(
+                    get_class($this->getModel()),
+                    $this->getModel()->getTable()
+                );
+            }
             return 'detail->' . $column;
         }
         return $column;
@@ -73,6 +82,14 @@ class DetailQueryBuilder extends Builder
         if (is_string($column)) {
             // If the column doesn't exist in the schema, query the detail JSON column
             if (!$this->columnExistsInSchema($column)) {
+                // Check if detail column exists before trying to query it
+                $columns = $this->getCachedSchemaColumns();
+                if (!in_array('detail', $columns)) {
+                    throw MissingDetailColumnException::forModel(
+                        get_class($this->getModel()),
+                        $this->getModel()->getTable()
+                    );
+                }
                 return parent::where('detail->' . $column, $operator, $value, $boolean);
             }
         }

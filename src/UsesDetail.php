@@ -32,42 +32,71 @@ trait UsesDetail
             });
 
             $detail = new stdClass();
+            $hasNonSchemaAttributes = false;
+
             foreach ($model->getAttributes() as $key => $value) {
                 if (!in_array($key, $columns)) {
                     $detail->{$key} = $value;
+                    $hasNonSchemaAttributes = true;
                     unset($model->{$key});
                 }
             }
-            $model->detail = json_encode($detail);
+
+            // Only throw error if we have non-schema attributes but no detail column
+            if ($hasNonSchemaAttributes && !in_array('detail', $columns)) {
+                throw MissingDetailColumnException::forModel(
+                    get_class($model),
+                    $model->getTable()
+                );
+            }
+
+            // Only set detail if the column exists
+            if (in_array('detail', $columns)) {
+                $model->detail = json_encode($detail);
+            }
         });
 
         static::saved(function ($model) {
-            $detail = json_decode($model->detail ?? '{}');
-            if ($detail) {
-                foreach ($detail as $key => $value) {
-                    $model->{$key} = $value;
+            // Only process detail if the attribute exists (column is in table)
+            if (isset($model->detail)) {
+                $detail = json_decode($model->detail ?? '{}');
+                if ($detail) {
+                    foreach ($detail as $key => $value) {
+                        $model->{$key} = $value;
+                    }
                 }
+                // remove detail from model since it's loaded into the attributes now
+                unset($model->detail);
             }
-            // remove detail from model since it's loaded into the attributes now
-            unset($model->detail);
         });
 
         static::retrieved(function ($model) {
-            $detail = json_decode($model->detail ?: '{}');
-            if ($detail) {
-                foreach ($detail as $key => $value) {
-                    $model->{$key} = $value;
+            // Only process detail if the attribute exists (column is in table)
+            if (property_exists($model, 'detail') || array_key_exists('detail', $model->getAttributes())) {
+                $detail = json_decode($model->detail ?: '{}');
+                if ($detail) {
+                    foreach ($detail as $key => $value) {
+                        $model->{$key} = $value;
+                    }
                 }
+                // remove detail from model since it's loaded into the attributes now
+                unset($model->detail);
             }
-            // remove detail from model since it's loaded into the attributes now
-            unset($model->detail);
         });
     }
 
     // adds a uuid when creating an instance of this model
+    // Only adds if the detail column exists in the table
     protected function initializeUsesDetail(): void
     {
-        $this->uuid = Str::uuid()->toString();
+        $columns = Cache::remember("schema." . $this->getTable(), 300, function () {
+            return Schema::getColumnListing($this->getTable());
+        });
+
+        // Only set UUID if detail column exists (since uuid is stored in detail)
+        if (in_array('detail', $columns)) {
+            $this->uuid = Str::uuid()->toString();
+        }
     }
 
     // adds automatic uuid lookup in the detail parameter if the id is 36 characters long

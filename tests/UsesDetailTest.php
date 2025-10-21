@@ -5,6 +5,8 @@ namespace ServiceTo\UsesDetail\Tests;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use ServiceTo\UsesDetail\Tests\Models\TestModel;
+use ServiceTo\UsesDetail\Tests\Models\ModelWithoutDetailColumn;
+use ServiceTo\MissingDetailColumnException;
 use stdClass;
 
 class UsesDetailTest extends TestCase
@@ -420,5 +422,102 @@ class UsesDetailTest extends TestCase
                            ->orWhere('priority', '<', 6)
                            ->get();
         $this->assertCount(3, $results);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_saving_non_schema_attribute_without_detail_column()
+    {
+        // Create a table without the detail column
+        Schema::create('models_without_detail', function ($table) {
+            $table->id();
+            $table->timestamps();
+        });
+
+        $this->expectException(MissingDetailColumnException::class);
+        $this->expectExceptionMessage(
+            "The model [ServiceTo\UsesDetail\Tests\Models\ModelWithoutDetailColumn] uses the UsesDetail trait " .
+            "but the table [models_without_detail] does not have a 'detail' column."
+        );
+
+        $model = new ModelWithoutDetailColumn();
+        $model->name = 'Test'; // Non-schema attribute
+        $model->save(); // This should throw the exception
+    }
+
+    /** @test */
+    public function it_allows_saving_schema_attributes_without_detail_column()
+    {
+        // Create a table without the detail column but with a name column
+        Schema::create('models_without_detail', function ($table) {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->timestamps();
+        });
+
+        // Should NOT throw an exception because 'name' is a schema column
+        $model = new ModelWithoutDetailColumn();
+        $model->name = 'Test';
+        $model->save();
+
+        $this->assertDatabaseHas('models_without_detail', [
+            'id' => $model->id,
+            'name' => 'Test',
+        ]);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_querying_non_schema_column_without_detail_column()
+    {
+        // Create a table without the detail column
+        Schema::create('models_without_detail', function ($table) {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->timestamps();
+        });
+
+        $this->expectException(MissingDetailColumnException::class);
+
+        // Trying to query a non-schema column should throw
+        ModelWithoutDetailColumn::where('status', 'active')->get();
+    }
+
+    /** @test */
+    public function it_allows_querying_schema_columns_without_detail_column()
+    {
+        // Create a table without the detail column
+        Schema::create('models_without_detail', function ($table) {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->timestamps();
+        });
+
+        $model = new ModelWithoutDetailColumn();
+        $model->name = 'Test';
+        $model->save();
+
+        // Should NOT throw an exception because 'name' is a schema column
+        $results = ModelWithoutDetailColumn::where('name', 'Test')->get();
+        $this->assertCount(1, $results);
+    }
+
+    /** @test */
+    public function it_provides_helpful_error_message_with_migration_hint()
+    {
+        // Create a table without the detail column
+        Schema::create('models_without_detail', function ($table) {
+            $table->id();
+            $table->timestamps();
+        });
+
+        try {
+            $model = new ModelWithoutDetailColumn();
+            $model->custom_field = 'value'; // Non-schema attribute
+            $model->save();
+            $this->fail('Expected MissingDetailColumnException was not thrown');
+        } catch (MissingDetailColumnException $e) {
+            $this->assertStringContainsString('detail', $e->getMessage());
+            $this->assertStringContainsString('models_without_detail', $e->getMessage());
+            $this->assertStringContainsString("\$table->json('detail')", $e->getMessage());
+        }
     }
 } 
