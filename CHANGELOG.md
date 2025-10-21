@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Custom `DetailQueryBuilder` that intelligently routes queries to schema or JSON detail columns
+- Support for all Laravel where methods: `where`, `orWhere`, `whereIn`, `whereNotIn`, `whereNull`, `whereNotNull`, `whereBetween`, `whereNotBetween` and their variants
+- Automatic column detection with 5-minute schema caching
+- Ability to use standard Laravel query methods on both schema and detail columns without distinction
+
+### Changed
+- `scopeDetail()` now delegates to the custom query builder for consistent behavior
+- Improved performance by caching schema information for 5 minutes
+
+### Technical
+- Added `newEloquentBuilder()` method to use custom query builder
+- Enhanced `where()` to handle qualified column names (table.column)
+- All existing functionality remains backward compatible
+
 ## [1.0.3] - 2025-09-29
 ### Fixed
 - Fixed "Cannot access property starting with '\0'" error when merging objects with private/protected properties
