@@ -73,8 +73,20 @@ trait UsesDetail
     }
 
     // use like you would use "where", prepends "detail->" to the column automatically
+    // intelligently checks if the column is in the schema and uses regular where if it is
     public function scopeDetail($query, string $column, $operator = null, $value = null, string $boolean = 'and')
     {
+        $model = $query->getModel();
+        $columns = Cache::remember("schema." . $model->getTable(), 300, function () use ($model) {
+            return Schema::getColumnListing($model->getTable());
+        });
+
+        // If the column exists in the schema, use regular where
+        if (in_array($column, $columns)) {
+            return $query->where($column, $operator, $value, $boolean);
+        }
+
+        // Otherwise, use the JSON path query
         return $query->where('detail->' . $column, $operator, $value, $boolean);
     }
 

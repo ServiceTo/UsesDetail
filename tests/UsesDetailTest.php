@@ -162,4 +162,45 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($originalCreatedAt, $model->created_at);
         $this->assertEquals($originalUpdatedAt, $model->updated_at);
     }
+
+    /** @test */
+    public function it_can_query_schema_columns_using_detail_scope()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->save();
+
+        // Query using detail() on a schema column (updated_at)
+        // This should intelligently use where('updated_at') instead of where('detail->updated_at')
+        $results = TestModel::detail('updated_at', '>', '2020-01-01')->get();
+        $this->assertCount(2, $results);
+
+        // Query using detail() on a schema column (id)
+        $results = TestModel::detail('id', '=', $model1->id)->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+    }
+
+    /** @test */
+    public function it_can_query_both_schema_and_detail_columns_using_same_method()
+    {
+        $model = new TestModel();
+        $model->name = 'Test Model';
+        $model->save();
+
+        // Query by schema column using detail()
+        $resultsBySchema = TestModel::detail('id', '=', $model->id)->get();
+        $this->assertCount(1, $resultsBySchema);
+
+        // Query by detail column using detail()
+        $resultsByDetail = TestModel::detail('name', '=', 'Test Model')->get();
+        $this->assertCount(1, $resultsByDetail);
+
+        // Both should return the same model
+        $this->assertEquals($resultsBySchema->first()->id, $resultsByDetail->first()->id);
+    }
 } 
