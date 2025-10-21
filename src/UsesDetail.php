@@ -12,6 +12,18 @@ use stdClass;
 
 trait UsesDetail
 {
+    /**
+     * Create a new Eloquent query builder for the model.
+     * Uses our custom DetailQueryBuilder that intelligently handles where() clauses.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return \ServiceTo\DetailQueryBuilder
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new DetailQueryBuilder($query);
+    }
+
     public static function bootUsesDetail()
     {
         static::saving(function ($model) {
@@ -74,20 +86,10 @@ trait UsesDetail
 
     // use like you would use "where", prepends "detail->" to the column automatically
     // intelligently checks if the column is in the schema and uses regular where if it is
+    // Note: With DetailQueryBuilder, this now just delegates to where() which handles the logic
     public function scopeDetail($query, string $column, $operator = null, $value = null, string $boolean = 'and')
     {
-        $model = $query->getModel();
-        $columns = Cache::remember("schema." . $model->getTable(), 300, function () use ($model) {
-            return Schema::getColumnListing($model->getTable());
-        });
-
-        // If the column exists in the schema, use regular where
-        if (in_array($column, $columns)) {
-            return $query->where($column, $operator, $value, $boolean);
-        }
-
-        // Otherwise, use the JSON path query
-        return $query->where('detail->' . $column, $operator, $value, $boolean);
+        return $query->where($column, $operator, $value, $boolean);
     }
 
     // take all the properties from object and merge them with myself

@@ -203,4 +203,222 @@ class UsesDetailTest extends TestCase
         // Both should return the same model
         $this->assertEquals($resultsBySchema->first()->id, $resultsByDetail->first()->id);
     }
+
+    /** @test */
+    public function it_can_query_detail_columns_using_regular_where()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->save();
+
+        // Query using regular where() on a detail column (name is not in schema)
+        // This should automatically use where('detail->name') behind the scenes
+        $results = TestModel::where('name', '=', 'First Model')->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+    }
+
+    /** @test */
+    public function it_can_query_schema_columns_using_regular_where()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->save();
+
+        // Query using regular where() on a schema column (id)
+        // This should use where('id') directly
+        $results = TestModel::where('id', '=', $model1->id)->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+
+        // Query using regular where() on a schema column (updated_at)
+        $results = TestModel::where('updated_at', '>', '2020-01-01')->get();
+        $this->assertCount(2, $results);
+    }
+
+    /** @test */
+    public function it_can_chain_where_clauses_for_both_schema_and_detail_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->description = 'Description A';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->description = 'Description B';
+        $model2->save();
+
+        // Chain where clauses: schema column + detail column
+        $results = TestModel::where('id', '=', $model1->id)
+                           ->where('name', '=', 'First Model')
+                           ->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+
+        // Chain multiple detail columns
+        $results = TestModel::where('name', '=', 'Second Model')
+                           ->where('description', '=', 'Description B')
+                           ->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model2->id, $results->first()->id);
+    }
+
+    /** @test */
+    public function it_can_use_or_where_for_detail_and_schema_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->save();
+
+        // Use orWhere with detail columns
+        $results = TestModel::where('name', '=', 'First Model')
+                           ->orWhere('name', '=', 'Second Model')
+                           ->get();
+        $this->assertCount(2, $results);
+
+        // Use orWhere with schema column
+        $results = TestModel::where('id', '=', $model1->id)
+                           ->orWhere('id', '=', $model2->id)
+                           ->get();
+        $this->assertCount(2, $results);
+    }
+
+    /** @test */
+    public function it_can_use_where_in_for_detail_and_schema_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->status = 'active';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->status = 'inactive';
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Third Model';
+        $model3->status = 'active';
+        $model3->save();
+
+        // whereIn on detail column
+        $results = TestModel::whereIn('status', ['active'])->get();
+        $this->assertCount(2, $results);
+
+        // whereIn on schema column
+        $results = TestModel::whereIn('id', [$model1->id, $model2->id])->get();
+        $this->assertCount(2, $results);
+
+        // whereNotIn on detail column
+        $results = TestModel::whereNotIn('status', ['inactive'])->get();
+        $this->assertCount(2, $results);
+    }
+
+    /** @test */
+    public function it_can_use_where_null_for_detail_and_schema_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First Model';
+        $model1->description = 'Has description';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Second Model';
+        $model2->save();
+
+        // whereNull on detail column (description not set means null in JSON)
+        $results = TestModel::whereNull('description')->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model2->id, $results->first()->id);
+
+        // whereNotNull on detail column
+        $results = TestModel::whereNotNull('description')->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+
+        // whereNotNull on schema column
+        $results = TestModel::whereNotNull('id')->get();
+        $this->assertCount(2, $results);
+    }
+
+    /** @test */
+    public function it_can_use_where_between_for_detail_and_schema_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'Model 1';
+        $model1->priority = 5;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Model 2';
+        $model2->priority = 10;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Model 3';
+        $model3->priority = 15;
+        $model3->save();
+
+        // whereBetween on detail column
+        $results = TestModel::whereBetween('priority', [8, 12])->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model2->id, $results->first()->id);
+
+        // whereNotBetween on detail column
+        $results = TestModel::whereNotBetween('priority', [8, 12])->get();
+        $this->assertCount(2, $results);
+
+        // whereBetween on schema column (id)
+        $results = TestModel::whereBetween('id', [$model1->id, $model2->id])->get();
+        $this->assertCount(2, $results);
+    }
+
+    /** @test */
+    public function it_can_combine_multiple_where_methods()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'Active Model';
+        $model1->status = 'active';
+        $model1->priority = 10;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Inactive Model';
+        $model2->status = 'inactive';
+        $model2->priority = 5;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Another Active';
+        $model3->status = 'active';
+        $model3->priority = 20;
+        $model3->save();
+
+        // Combine multiple where methods
+        $results = TestModel::where('status', 'active')
+                           ->whereBetween('priority', [8, 15])
+                           ->whereNotNull('name')
+                           ->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals($model1->id, $results->first()->id);
+
+        // Use orWhere with whereIn
+        $results = TestModel::whereIn('status', ['active'])
+                           ->orWhere('priority', '<', 6)
+                           ->get();
+        $this->assertCount(3, $results);
+    }
 } 
