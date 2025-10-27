@@ -520,4 +520,115 @@ class UsesDetailTest extends TestCase
             $this->assertStringContainsString("\$table->json('detail')", $e->getMessage());
         }
     }
+
+    /** @test */
+    public function it_can_order_by_detail_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'Charlie';
+        $model1->priority = 3;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Alice';
+        $model2->priority = 1;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Bob';
+        $model3->priority = 2;
+        $model3->save();
+
+        // Order by detail column (name)
+        $results = TestModel::orderBy('name')->get();
+        $this->assertEquals('Alice', $results[0]->name);
+        $this->assertEquals('Bob', $results[1]->name);
+        $this->assertEquals('Charlie', $results[2]->name);
+
+        // Order by detail column descending
+        $results = TestModel::orderBy('name', 'desc')->get();
+        $this->assertEquals('Charlie', $results[0]->name);
+        $this->assertEquals('Bob', $results[1]->name);
+        $this->assertEquals('Alice', $results[2]->name);
+
+        // Order by detail column with orderByDesc helper
+        $results = TestModel::orderByDesc('priority')->get();
+        $this->assertEquals(3, $results[0]->priority);
+        $this->assertEquals(2, $results[1]->priority);
+        $this->assertEquals(1, $results[2]->priority);
+    }
+
+    /** @test */
+    public function it_can_order_by_schema_columns()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'First';
+        $model1->save();
+        sleep(1);
+
+        $model2 = new TestModel();
+        $model2->name = 'Second';
+        $model2->save();
+        sleep(1);
+
+        $model3 = new TestModel();
+        $model3->name = 'Third';
+        $model3->save();
+
+        // Order by schema column (id)
+        $results = TestModel::orderBy('id')->get();
+        $this->assertEquals($model1->id, $results[0]->id);
+        $this->assertEquals($model2->id, $results[1]->id);
+        $this->assertEquals($model3->id, $results[2]->id);
+
+        // Order by schema column descending
+        $results = TestModel::orderBy('id', 'desc')->get();
+        $this->assertEquals($model3->id, $results[0]->id);
+        $this->assertEquals($model2->id, $results[1]->id);
+        $this->assertEquals($model1->id, $results[2]->id);
+
+        // Use latest() helper
+        $results = TestModel::latest()->get();
+        $this->assertEquals($model3->id, $results[0]->id);
+
+        // Use oldest() helper
+        $results = TestModel::oldest()->get();
+        $this->assertEquals($model1->id, $results[0]->id);
+    }
+
+    /** @test */
+    public function it_can_combine_where_and_order_by()
+    {
+        $model1 = new TestModel();
+        $model1->name = 'Bob';
+        $model1->status = 'active';
+        $model1->priority = 3;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Alice';
+        $model2->status = 'active';
+        $model2->priority = 1;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Charlie';
+        $model3->status = 'inactive';
+        $model3->priority = 2;
+        $model3->save();
+
+        // Where + OrderBy on detail columns
+        $results = TestModel::where('status', 'active')
+                           ->orderBy('priority')
+                           ->get();
+        $this->assertCount(2, $results);
+        $this->assertEquals('Alice', $results[0]->name);
+        $this->assertEquals('Bob', $results[1]->name);
+
+        // Multiple order by
+        $results = TestModel::orderBy('status')
+                           ->orderBy('name', 'desc')
+                           ->get();
+        $this->assertCount(3, $results);
+    }
 } 

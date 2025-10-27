@@ -76,6 +76,18 @@ YourModel::where('status', 'active')
          ->whereNotNull('description')
          ->whereIn('category', ['A', 'B'])
          ->get();
+
+// Use orderBy / orderByDesc
+YourModel::orderBy('name')->get();
+YourModel::orderByDesc('priority')->get();
+YourModel::latest()->get();  // Orders by created_at desc
+YourModel::oldest()->get();  // Orders by created_at asc
+
+// Combine everything
+YourModel::where('status', 'active')
+         ->whereBetween('priority', [1, 10])
+         ->orderBy('name')
+         ->get();
 ```
 
 ### Using the `detail()` Scope (Backward Compatible)

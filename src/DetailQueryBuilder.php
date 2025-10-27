@@ -281,5 +281,66 @@ class DetailQueryBuilder extends Builder
     {
         return $this->whereNotIn($column, $values, 'or');
     }
+
+    /**
+     * Add an "order by" clause to the query.
+     * Intelligently routes to schema or detail column.
+     *
+     * @param  \Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
+     * @param  string  $direction
+     * @return $this
+     */
+    public function orderBy($column, $direction = 'asc')
+    {
+        // If it's not a simple string, pass through to parent
+        if (!is_string($column)) {
+            return parent::orderBy($column, $direction);
+        }
+
+        // Resolve column name
+        $column = $this->resolveColumn($column);
+        return parent::orderBy($column, $direction);
+    }
+
+    /**
+     * Add a descending "order by" clause to the query.
+     *
+     * @param  \Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
+     * @return $this
+     */
+    public function orderByDesc($column)
+    {
+        return $this->orderBy($column, 'desc');
+    }
+
+    /**
+     * Add an "order by" clause for a timestamp to the query.
+     *
+     * @param  string  $column
+     * @return $this
+     */
+    public function latest($column = null)
+    {
+        if (is_null($column)) {
+            $column = $this->getModel()->getCreatedAtColumn() ?? 'created_at';
+        }
+
+        return $this->orderBy($column, 'desc');
+    }
+
+    /**
+     * Add an "order by" clause for a timestamp to the query.
+     *
+     * @param  string  $column
+     * @return $this
+     */
+    public function oldest($column = null)
+    {
+        if (is_null($column)) {
+            $column = $this->getModel()->getCreatedAtColumn() ?? 'created_at';
+        }
+
+        return $this->orderBy($column, 'asc');
+    }
 }
 
