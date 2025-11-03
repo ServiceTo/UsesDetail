@@ -30,6 +30,7 @@ class DetailQueryBuilder extends Builder
     protected function columnExistsInSchema($column)
     {
         // Handle qualified column names like "table_name.column_name"
+        // Strip any table qualifier to get just the column name
         if (str_contains($column, '.')) {
             $column = substr($column, strrpos($column, '.') + 1);
         }
@@ -46,7 +47,13 @@ class DetailQueryBuilder extends Builder
      */
     protected function resolveColumn($column)
     {
-        if (!$this->columnExistsInSchema($column)) {
+        // Extract just the column name (strip table qualifier if present)
+        $columnName = $column;
+        if (str_contains($column, '.')) {
+            $columnName = substr($column, strrpos($column, '.') + 1);
+        }
+
+        if (!$this->columnExistsInSchema($columnName)) {
             // Column doesn't exist in schema, need to use detail column
             $columns = $this->getCachedSchemaColumns();
             if (!in_array('detail', $columns)) {
@@ -55,7 +62,8 @@ class DetailQueryBuilder extends Builder
                     $this->getModel()->getTable()
                 );
             }
-            return 'detail->' . $column;
+            // Use just the column name (without table qualifier) in the detail JSON path
+            return 'detail->' . $columnName;
         }
         return $column;
     }
@@ -80,8 +88,17 @@ class DetailQueryBuilder extends Builder
 
         // Check if this is a simple column string
         if (is_string($column)) {
+            // Store original column name (may include table qualifier)
+            $originalColumn = $column;
+
+            // Extract just the column name for schema checking (strip table qualifier if present)
+            $columnName = $column;
+            if (str_contains($column, '.')) {
+                $columnName = substr($column, strrpos($column, '.') + 1);
+            }
+
             // If the column doesn't exist in the schema, query the detail JSON column
-            if (!$this->columnExistsInSchema($column)) {
+            if (!$this->columnExistsInSchema($columnName)) {
                 // Check if detail column exists before trying to query it
                 $columns = $this->getCachedSchemaColumns();
                 if (!in_array('detail', $columns)) {
@@ -90,7 +107,8 @@ class DetailQueryBuilder extends Builder
                         $this->getModel()->getTable()
                     );
                 }
-                return parent::where('detail->' . $column, $operator, $value, $boolean);
+                // Use just the column name (without table qualifier) in the detail JSON path
+                return parent::where('detail->' . $columnName, $operator, $value, $boolean);
             }
         }
 
