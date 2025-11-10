@@ -360,5 +360,62 @@ class DetailQueryBuilder extends Builder
 
         return $this->orderBy($column, 'asc');
     }
+
+    /**
+     * Add a "group by" clause to the query.
+     * Intelligently routes to schema or detail column.
+     *
+     * @param  array|string  ...$groups
+     * @return $this
+     */
+    public function groupBy(...$groups)
+    {
+        // Handle multiple columns or array of columns
+        $resolvedGroups = [];
+
+        foreach ($groups as $group) {
+            if (is_string($group)) {
+                // Apply intelligent column resolution
+                $resolvedGroups[] = $this->resolveColumn($group);
+            } else {
+                // Pass through non-string expressions (closures, Expressions, etc.)
+                $resolvedGroups[] = $group;
+            }
+        }
+
+        return parent::groupBy(...$resolvedGroups);
+    }
+
+    /**
+     * Add a "having" clause to the query.
+     * Intelligently routes to schema or detail column.
+     *
+     * @param  string  $column
+     * @param  string|int|float|null  $operator
+     * @param  string|int|float|null  $value
+     * @param  string  $boolean
+     * @return $this
+     */
+    public function having($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        if (is_string($column)) {
+            $column = $this->resolveColumn($column);
+        }
+
+        return parent::having($column, $operator, $value, $boolean);
+    }
+
+    /**
+     * Add an "or having" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string|int|float|null  $operator
+     * @param  string|int|float|null  $value
+     * @return $this
+     */
+    public function orHaving($column, $operator = null, $value = null)
+    {
+        return $this->having($column, $operator, $value, 'or');
+    }
 }
 

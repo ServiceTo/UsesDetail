@@ -83,10 +83,31 @@ YourModel::orderByDesc('priority')->get();
 YourModel::latest()->get();  // Orders by created_at desc
 YourModel::oldest()->get();  // Orders by created_at asc
 
+// Use groupBy with detail columns
+YourModel::select('detail->category as category')
+         ->selectRaw('COUNT(*) as count')
+         ->groupBy('category')
+         ->get();
+
+// Group by multiple columns (mix schema and detail)
+YourModel::select('status', 'detail->category as category')
+         ->selectRaw('COUNT(*) as count')
+         ->groupBy('status', 'category')
+         ->get();
+
+// Use having clause with groupBy
+YourModel::select('detail->category as category')
+         ->selectRaw('AVG(json_extract(detail, "$.priority")) as avg_priority')
+         ->groupBy('category')
+         ->having(\DB::raw('AVG(json_extract(detail, "$.priority"))'), '>', 5)
+         ->get();
+
 // Combine everything
 YourModel::where('status', 'active')
          ->whereBetween('priority', [1, 10])
-         ->orderBy('name')
+         ->groupBy('category')
+         ->having(\DB::raw('COUNT(*)'), '>', 1)
+         ->orderBy('category')
          ->get();
 ```
 

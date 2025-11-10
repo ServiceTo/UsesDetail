@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-11-10
+### Added
+- Support for `groupBy()` with intelligent column routing for both schema and detail columns
+- Support for `having()` and `orHaving()` clauses with detail columns
+- Ability to group by multiple columns (mixing schema and detail columns)
+- Comprehensive tests for groupBy functionality with 5 new test cases
+- Documentation examples for groupBy and having usage
+
 ## [1.1.2] - 2025-10-21
 ### Added
 - Support for `orderBy()` and `orderByDesc()` with intelligent column routing

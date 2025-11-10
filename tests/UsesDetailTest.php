@@ -631,4 +631,177 @@ class UsesDetailTest extends TestCase
                            ->get();
         $this->assertCount(3, $results);
     }
+
+    /** @test */
+    public function it_can_group_by_detail_columns()
+    {
+        // Create models with different categories in detail column
+        $model1 = new TestModel();
+        $model1->name = 'Alice';
+        $model1->category = 'A';
+        $model1->status = 'active';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Bob';
+        $model2->category = 'A';
+        $model2->status = 'active';
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Charlie';
+        $model3->category = 'B';
+        $model3->status = 'inactive';
+        $model3->save();
+
+        // Group by detail column
+        $results = TestModel::select('detail->category as category')
+                           ->selectRaw('COUNT(*) as count')
+                           ->groupBy('category')
+                           ->orderBy('category')
+                           ->get();
+
+        $this->assertCount(2, $results);
+        $this->assertEquals('A', $results[0]->category);
+        $this->assertEquals(2, $results[0]->count);
+        $this->assertEquals('B', $results[1]->category);
+        $this->assertEquals(1, $results[1]->count);
+    }
+
+    /** @test */
+    public function it_can_group_by_schema_columns()
+    {
+        // Create models with created_at dates
+        $model1 = new TestModel();
+        $model1->name = 'Test 1';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Test 2';
+        $model2->save();
+
+        // Group by schema column (created_at date)
+        $results = TestModel::selectRaw('DATE(created_at) as date')
+                           ->selectRaw('COUNT(*) as count')
+                           ->groupBy(\DB::raw('DATE(created_at)'))
+                           ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals(2, $results[0]->count);
+    }
+
+    /** @test */
+    public function it_can_group_by_multiple_columns_mixed()
+    {
+        // Create models with multiple grouping criteria
+        $model1 = new TestModel();
+        $model1->name = 'Alice';
+        $model1->category = 'A';
+        $model1->status = 'active';
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Bob';
+        $model2->category = 'A';
+        $model2->status = 'inactive';
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Charlie';
+        $model3->category = 'B';
+        $model3->status = 'active';
+        $model3->save();
+
+        // Group by multiple detail columns
+        $results = TestModel::select('detail->category as category', 'detail->status as status')
+                           ->selectRaw('COUNT(*) as count')
+                           ->groupBy('category', 'status')
+                           ->orderBy('category')
+                           ->orderBy('status')
+                           ->get();
+
+        $this->assertCount(3, $results);
+        $this->assertEquals('A', $results[0]->category);
+        $this->assertEquals('active', $results[0]->status);
+        $this->assertEquals(1, $results[0]->count);
+    }
+
+    /** @test */
+    public function it_can_use_having_with_detail_columns()
+    {
+        // Create models with different categories
+        $model1 = new TestModel();
+        $model1->name = 'Alice';
+        $model1->category = 'A';
+        $model1->priority = 5;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Bob';
+        $model2->category = 'A';
+        $model2->priority = 10;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Charlie';
+        $model3->category = 'B';
+        $model3->priority = 3;
+        $model3->save();
+
+        // Group by category and use having with detail column
+        $results = TestModel::select('detail->category as category')
+                           ->selectRaw('AVG(json_extract(detail, "$.priority")) as avg_priority')
+                           ->groupBy('category')
+                           ->having(\DB::raw('AVG(json_extract(detail, "$.priority"))'), '>', 5)
+                           ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals('A', $results[0]->category);
+    }
+
+    /** @test */
+    public function it_can_combine_where_group_by_and_having()
+    {
+        // Create test data
+        $model1 = new TestModel();
+        $model1->name = 'Alice';
+        $model1->category = 'A';
+        $model1->status = 'active';
+        $model1->priority = 5;
+        $model1->save();
+
+        $model2 = new TestModel();
+        $model2->name = 'Bob';
+        $model2->category = 'A';
+        $model2->status = 'active';
+        $model2->priority = 10;
+        $model2->save();
+
+        $model3 = new TestModel();
+        $model3->name = 'Charlie';
+        $model3->category = 'B';
+        $model3->status = 'active';
+        $model3->priority = 3;
+        $model3->save();
+
+        $model4 = new TestModel();
+        $model4->name = 'Dave';
+        $model4->category = 'C';
+        $model4->status = 'inactive';
+        $model4->priority = 20;
+        $model4->save();
+
+        // Combine where, groupBy, having, and orderBy
+        $results = TestModel::where('status', 'active')
+                           ->select('detail->category as category')
+                           ->selectRaw('COUNT(*) as count')
+                           ->groupBy('category')
+                           ->having(\DB::raw('COUNT(*)'), '>', 1)
+                           ->orderBy('category')
+                           ->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals('A', $results[0]->category);
+        $this->assertEquals(2, $results[0]->count);
+    }
 } 
