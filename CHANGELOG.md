@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When a qualified column name (table.column) references a table other than the model's table, it is now passed through without detail column resolution
 - Fixes belongsToMany relationships where pivot table columns were incorrectly queried as JSON paths
 
+### Added
+- Comprehensive test suite for pivot table queries with 8 new test cases
+- Test models demonstrating relationships with both UsesDetail and non-UsesDetail models
+- Tests covering mixed relationships (Category with UsesDetail ↔ Product without UsesDetail)
+- Tests for relationships where both models use UsesDetail (Post ↔ Tag)
+- Tests validating pivot table column queries (wherePivot, orderBy on pivot columns)
+- Tests ensuring qualified column name resolution works correctly for both model and pivot tables
+
 ## [1.1.4] - 2025-11-10
 ### Added
 - Support for `groupBy()` with intelligent column routing for both schema and detail columns
