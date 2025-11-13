@@ -5,13 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.5] - 2025-11-13
-### Fixed
-- Fixed pivot table queries incorrectly resolving to detail JSON columns
-- DetailQueryBuilder now properly handles qualified column names from other tables (e.g., pivot tables in relationships)
-- When a qualified column name (table.column) references a table other than the model's table, it is now passed through without detail column resolution
-- Fixes belongsToMany relationships where pivot table columns were incorrectly queried as JSON paths
-
+## [1.1.6] - 2025-11-13
 ### Added
 - Comprehensive test suite for pivot table queries with 8 new test cases
 - Test models demonstrating relationships with both UsesDetail and non-UsesDetail models
@@ -19,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests for relationships where both models use UsesDetail (Post ↔ Tag)
 - Tests validating pivot table column queries (wherePivot, orderBy on pivot columns)
 - Tests ensuring qualified column name resolution works correctly for both model and pivot tables
+
+## [1.1.5] - 2025-11-13
+### Fixed
+- Fixed pivot table queries incorrectly resolving to detail JSON columns
+- DetailQueryBuilder now properly handles qualified column names from other tables (e.g., pivot tables in relationships)
+- When a qualified column name (table.column) references a table other than the model's table, it is now passed through without detail column resolution
+- Fixes belongsToMany relationships where pivot table columns were incorrectly queried as JSON paths
 
 ## [1.1.4] - 2025-11-10
 ### Added
