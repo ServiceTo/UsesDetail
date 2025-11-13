@@ -93,8 +93,17 @@ class DetailQueryBuilder extends Builder
 
             // Extract just the column name for schema checking (strip table qualifier if present)
             $columnName = $column;
+            $tableName = null;
             if (str_contains($column, '.')) {
-                $columnName = substr($column, strrpos($column, '.') + 1);
+                $parts = explode('.', $column);
+                $tableName = $parts[0];
+                $columnName = $parts[1];
+
+                // If the table qualifier is NOT the model's table, this is a reference to another
+                // table (like a pivot table in a relationship). Pass it through as-is.
+                if ($tableName !== $this->getModel()->getTable()) {
+                    return parent::where($column, $operator, $value, $boolean);
+                }
             }
 
             // If the column doesn't exist in the schema, query the detail JSON column
