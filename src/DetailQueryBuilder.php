@@ -104,6 +104,7 @@ class DetailQueryBuilder extends Builder
                 if ($tableName !== $this->getModel()->getTable()) {
                     return parent::where($column, $operator, $value, $boolean);
                 }
+                // If table matches model table, we'll check if the column needs detail resolution below
             }
 
             // If the column doesn't exist in the schema, query the detail JSON column
@@ -119,9 +120,12 @@ class DetailQueryBuilder extends Builder
                 // Use just the column name (without table qualifier) in the detail JSON path
                 return parent::where('detail->' . $columnName, $operator, $value, $boolean);
             }
+
+            // Column exists in schema - use it as-is (with qualifier if present)
+            return parent::where($column, $operator, $value, $boolean);
         }
 
-        // Otherwise, use the regular where (column exists in schema)
+        // Otherwise, use the regular where
         return parent::where($column, $operator, $value, $boolean);
     }
 

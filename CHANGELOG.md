@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2025-11-13
+### Fixed
+- Fixed regression where qualified column names matching the model's table (e.g., `accounts.companyID`) were not being resolved to detail columns
+- Now correctly handles qualified columns for both the model's table (resolve to detail if needed) and other tables (pass through as-is)
+
 ## [1.1.6] - 2025-11-13
 ### Added
 - Comprehensive test suite for pivot table queries with 8 new test cases
