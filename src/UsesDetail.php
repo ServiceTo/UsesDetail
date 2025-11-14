@@ -13,6 +13,27 @@ use stdClass;
 trait UsesDetail
 {
     /**
+     * Get a new query builder instance for the connection.
+     *
+     * @return \ServiceTo\DetailBaseQueryBuilder
+     */
+    protected function newBaseQueryBuilder()
+    {
+        $connection = $this->getConnection();
+
+        $builder = new DetailBaseQueryBuilder(
+            $connection,
+            $connection->getQueryGrammar(),
+            $connection->getPostProcessor()
+        );
+
+        // Set the model so the builder can access table info
+        $builder->setModel($this);
+
+        return $builder;
+    }
+
+    /**
      * Create a new Eloquent query builder for the model.
      * Uses our custom DetailQueryBuilder that intelligently handles where() clauses.
      *

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9] - 2025-11-14
+### Added
+- New `DetailBaseQueryBuilder` class that extends Laravel's Query\Builder
+- Override `newBaseQueryBuilder()` in UsesDetail trait to return DetailBaseQueryBuilder
+- Added `whereIntegerInRaw()` method to handle eager loading with integer foreign keys
+
+### Fixed
+- Fixed eager loading (e.g., `->with('relationship')`) for hasMany/hasOne relationships where the foreign key is stored in the detail column
+- Laravel's HasMany uses `whereIntegerInRaw()` instead of `whereIn()` for integer keys during eager loading - now properly intercepts and resolves these calls
+- Prevents double resolution when DetailQueryBuilder already converts columns to `detail->column` format
+- Both Eloquent Builder (DetailQueryBuilder) and Query Builder (DetailBaseQueryBuilder) now properly handle column resolution for detail fields
+
 ## [1.1.8] - 2025-11-13
 ### Fixed
 - Fixed `resolveColumn()` method to match the pivot table handling logic in `where()` method
