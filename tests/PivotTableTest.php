@@ -4,6 +4,7 @@ namespace ServiceTo\UsesDetail\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use ServiceTo\UsesDetail\Tests\Models\Category;
 use ServiceTo\UsesDetail\Tests\Models\Product;
 use ServiceTo\UsesDetail\Tests\Models\Tag;
@@ -64,7 +65,7 @@ class PivotTableTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_pivot_table_with_uses_detail_and_non_uses_detail_models()
     {
         // Create a category (with UsesDetail)
@@ -89,7 +90,7 @@ class PivotTableTest extends TestCase
         $this->assertEquals('Phone', $products[1]->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_pivot_table_columns_directly_with_uses_detail_model()
     {
         // Create a category (with UsesDetail)
@@ -112,7 +113,7 @@ class PivotTableTest extends TestCase
         $this->assertEquals('Textbook', $products[0]->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_pivot_table_with_both_models_using_uses_detail()
     {
         // Create tags (with UsesDetail)
@@ -143,7 +144,7 @@ class PivotTableTest extends TestCase
         $this->assertTrue($tags->contains('name', 'PHP'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_order_by_pivot_table_columns_with_uses_detail_models()
     {
         // Create tags (with UsesDetail)
@@ -181,7 +182,7 @@ class PivotTableTest extends TestCase
         $this->assertEquals('Second', $tags[2]->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_by_detail_columns_in_related_model_with_pivot()
     {
         // Create categories (with UsesDetail)
@@ -215,7 +216,7 @@ class PivotTableTest extends TestCase
         $this->assertEquals('Electronics', $activeCategories[0]->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_combine_pivot_queries_with_detail_column_queries()
     {
         // Create tags (with UsesDetail)
@@ -261,7 +262,7 @@ class PivotTableTest extends TestCase
         $this->assertTrue($highPriorityTags->contains('name', 'Testing'));
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_qualified_column_names_from_model_table_correctly()
     {
         // Create a category (with UsesDetail)
@@ -278,7 +279,7 @@ class PivotTableTest extends TestCase
         $this->assertEquals('Test Category', $results[0]->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_distinguishes_between_model_table_and_pivot_table_qualified_columns()
     {
         // Create a category (with UsesDetail)

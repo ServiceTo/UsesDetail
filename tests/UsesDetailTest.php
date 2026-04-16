@@ -4,6 +4,7 @@ namespace ServiceTo\UsesDetail\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use ServiceTo\UsesDetail\Tests\Models\TestModel;
 use ServiceTo\UsesDetail\Tests\Models\ModelWithoutDetailColumn;
 use ServiceTo\MissingDetailColumnException;
@@ -24,7 +25,7 @@ class UsesDetailTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_stores_dynamic_attributes_in_detail_column()
     {
         $model = new TestModel();
@@ -47,7 +48,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(36, strlen($detail['uuid']));
     }
 
-    /** @test */
+    #[Test]
     public function it_retrieves_dynamic_attributes_from_detail_column()
     {
         $model = new TestModel();
@@ -62,7 +63,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(36, strlen($retrieved->uuid));
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_uuid_on_initialization()
     {
         $model = new TestModel();
@@ -70,7 +71,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(36, strlen($model->uuid));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_find_by_uuid()
     {
         $model = new TestModel();
@@ -80,7 +81,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model->id, $found->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_using_detail_scope()
     {
         $model1 = new TestModel();
@@ -96,7 +97,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model1->id, $results->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_merge_objects()
     {
         $model = new TestModel();
@@ -113,7 +114,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals('New Description', $model->description);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_merge_arrays()
     {
         $model = new TestModel();
@@ -131,7 +132,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals('New Description', $model->description);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_merge_json_strings()
     {
         $model = new TestModel();
@@ -145,7 +146,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals('New Description', $model->description);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_overwrite_timestamps_when_merging()
     {
         $model = new TestModel();
@@ -165,7 +166,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($originalUpdatedAt, $model->updated_at);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_schema_columns_using_detail_scope()
     {
         $model1 = new TestModel();
@@ -187,7 +188,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model1->id, $results->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_both_schema_and_detail_columns_using_same_method()
     {
         $model = new TestModel();
@@ -206,7 +207,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($resultsBySchema->first()->id, $resultsByDetail->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_detail_columns_using_regular_where()
     {
         $model1 = new TestModel();
@@ -224,7 +225,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model1->id, $results->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_query_schema_columns_using_regular_where()
     {
         $model1 = new TestModel();
@@ -246,7 +247,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_chain_where_clauses_for_both_schema_and_detail_columns()
     {
         $model1 = new TestModel();
@@ -274,7 +275,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model2->id, $results->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_or_where_for_detail_and_schema_columns()
     {
         $model1 = new TestModel();
@@ -298,7 +299,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_where_in_for_detail_and_schema_columns()
     {
         $model1 = new TestModel();
@@ -329,7 +330,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_where_null_for_detail_and_schema_columns()
     {
         $model1 = new TestModel();
@@ -356,7 +357,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_where_between_for_detail_and_schema_columns()
     {
         $model1 = new TestModel();
@@ -388,7 +389,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_combine_multiple_where_methods()
     {
         $model1 = new TestModel();
@@ -424,7 +425,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(3, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_saving_non_schema_attribute_without_detail_column()
     {
         // Create a table without the detail column
@@ -444,7 +445,7 @@ class UsesDetailTest extends TestCase
         $model->save(); // This should throw the exception
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_saving_schema_attributes_without_detail_column()
     {
         // Create a table without the detail column but with a name column
@@ -465,7 +466,7 @@ class UsesDetailTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_querying_non_schema_column_without_detail_column()
     {
         // Create a table without the detail column
@@ -481,7 +482,7 @@ class UsesDetailTest extends TestCase
         ModelWithoutDetailColumn::where('status', 'active')->get();
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_querying_schema_columns_without_detail_column()
     {
         // Create a table without the detail column
@@ -500,7 +501,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(1, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_helpful_error_message_with_migration_hint()
     {
         // Create a table without the detail column
@@ -521,7 +522,7 @@ class UsesDetailTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_can_order_by_detail_columns()
     {
         $model1 = new TestModel();
@@ -558,7 +559,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(1, $results[2]->priority);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_order_by_schema_columns()
     {
         $model1 = new TestModel();
@@ -596,7 +597,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals($model1->id, $results[0]->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_combine_where_and_order_by()
     {
         $model1 = new TestModel();
@@ -632,7 +633,7 @@ class UsesDetailTest extends TestCase
         $this->assertCount(3, $results);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_group_by_detail_columns()
     {
         // Create models with different categories in detail column
@@ -668,7 +669,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(1, $results[1]->count);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_group_by_schema_columns()
     {
         // Create models with created_at dates
@@ -690,7 +691,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(2, $results[0]->count);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_group_by_multiple_columns_mixed()
     {
         // Create models with multiple grouping criteria
@@ -726,7 +727,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals(1, $results[0]->count);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_having_with_detail_columns()
     {
         // Create models with different categories
@@ -759,7 +760,7 @@ class UsesDetailTest extends TestCase
         $this->assertEquals('A', $results[0]->category);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_combine_where_group_by_and_having()
     {
         // Create test data
