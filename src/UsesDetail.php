@@ -4,6 +4,7 @@ namespace ServiceTo;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ErrorException;
@@ -52,11 +53,27 @@ trait UsesDetail
                 return Schema::getColumnListing($model->getTable());
             });
 
+            $generatedColumns = Cache::remember("schema.generated." . $model->getTable(), 300, function () use ($model) {
+                return array_column(
+                    DB::select(
+                        "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                         WHERE TABLE_SCHEMA = DATABASE()
+                         AND TABLE_NAME = ?
+                         AND EXTRA LIKE '%GENERATED%'",
+                        [$model->getTable()]
+                    ),
+                    'COLUMN_NAME'
+                );
+            });
+
             $detail = new stdClass();
             $hasNonSchemaAttributes = false;
 
             foreach ($model->getAttributes() as $key => $value) {
-                if (!in_array($key, $columns)) {
+                if (in_array($key, $generatedColumns)) {
+                    // Virtual/stored generated column — computed by DB, never write explicitly
+                    unset($model->{$key});
+                } elseif (!in_array($key, $columns)) {
                     $detail->{$key} = $value;
                     $hasNonSchemaAttributes = true;
                     unset($model->{$key});
