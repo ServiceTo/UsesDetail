@@ -71,7 +71,10 @@ trait UsesDetail
 
             foreach ($model->getAttributes() as $key => $value) {
                 if (in_array($key, $generatedColumns)) {
-                    // Virtual/stored generated column — computed by DB, never write explicitly
+                    // Virtual/stored generated column — data lives in detail (the index source),
+                    // never written as an explicit column value
+                    $detail->{$key} = $value;
+                    $hasNonSchemaAttributes = true;
                     unset($model->{$key});
                 } elseif (!in_array($key, $columns)) {
                     $detail->{$key} = $value;
