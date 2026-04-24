@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-04-24
+### Fixed
+- Generated column values are now preserved in the detail column before being stripped from the explicit write, so the source data (e.g. the value that the generated column indexes) is not lost on save
+
+## [1.2.1] - 2026-04-23
+### Added
+- Generated/virtual columns (MySQL `GENERATED` columns) are now detected via `information_schema` and excluded from explicit writes on save, preventing errors when trying to set a DB-computed column value
+- Generated column metadata is cached for 5 minutes alongside the regular schema column cache
+
+## [1.2.0] - 2026-04-16
+### Added
+- Laravel 13 support (`illuminate/support` and `illuminate/database` ^13.0)
+- PHP 8.2 minimum (required by Laravel 13)
+- `orchestra/testbench` ^10.0 and `phpunit/phpunit` ^12.0 in dev dependencies
+
+### Changed
+- Dropped Laravel 8 and 9 from supported versions (end of life)
+- Migrated `phpunit.xml` to current PHPUnit schema (`<coverage>` → `<source>`)
+- Replaced deprecated `/** @test */` doc-comment annotations with `#[Test]` PHP attributes
+
 ## [1.1.9] - 2025-11-14
 ### Added
 - New `DetailBaseQueryBuilder` class that extends Laravel's Query\Builder
