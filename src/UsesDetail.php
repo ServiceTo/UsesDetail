@@ -54,6 +54,15 @@ trait UsesDetail
             });
 
             $generatedColumns = Cache::remember("schema.generated." . $model->getTable(), 300, function () use ($model) {
+                // information_schema.COLUMNS/DATABASE() is MySQL-only
+                // syntax. Other drivers (sqlite, used by test suites;
+                // pgsql) simply report no generated columns rather than
+                // erroring — every column is then handled by the regular
+                // schema-membership check below.
+                if ($model->getConnection()->getDriverName() !== 'mysql') {
+                    return [];
+                }
+
                 return array_column(
                     DB::select(
                         "SELECT COLUMN_NAME FROM information_schema.COLUMNS
